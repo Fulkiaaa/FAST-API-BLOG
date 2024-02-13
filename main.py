@@ -1,71 +1,48 @@
-from fastapi import FastAPI, Depends, HTTPException, status
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from models.article import Article
-from typing import List
-from database.database import create_article, read_articles, read_article, update_article, delete_article
+from fastapi import FastAPI, Depends, HTTPException
+from sqlalchemy.orm import Session
+from database import SessionLocal, engine, Base
+import articles
+from datetime import datetime
 
 app = FastAPI()
 
-security = HTTPBasic()
+# Create the database tables
+Base.metadata.create_all(bind=engine)
 
-def authenticate(credentials: HTTPBasicCredentials = Depends(security)):
-    correct_username = "user"
-    correct_password = "1234"
-    if credentials.username != correct_username or credentials.password != correct_password:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Basic"},
-        )
-    return True
+# Dependency for getting the database session
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
-@app.get("/secure_endpoint/")
-async def secure_endpoint(authenticated: bool = Depends(authenticate)):
-    return {"message": "This is a secure endpoint"}
+@app.post("/articles/")
+def create_article(title: str, content: str, publish_date: datetime = datetime.utcnow(), db: Session = Depends(get_db)):
+    return articles.create_article(db=db, title=title, content=content, publish_date=publish_date)
 
-#FILTRAGE
-@app.get("/articles/", response_model=List[Article])
-async def get_articles(title: str = None):
-    articles = read_articles()
-    if title:
-        articles = [article for article in articles if title.lower() in article.title.lower()]
-    return articles
+@app.get("/articles/")
+def read_articles(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
+    return articles.get_articles(db=db, skip=skip, limit=limit)
 
-#PAGINATION
-@app.get("/articles/", response_model=List[Article])
-async def get_articles(skip: int = 0, limit: int = 10):
-    articles = read_articles()
-    return articles[skip:skip + limit]
+@app.get("/articles/{article_id}")
+def read_article(article_id: int, db: Session = Depends(get_db)):
+    db_article = articles.get_article(db=db, article_id=article_id)
+    if db_article is None:
+        raise HTTPException(status_code=404, detail="Article not found")
+    return db_article
 
-#RECHERCHE
-@app.get("/articles/", response_model=List[Article])
-async def get_articles(query: str = None):
-    articles = read_articles()
-    if query:
-        articles = [article for article in articles if query.lower() in article.title.lower() or query.lower() in article.content.lower()]
-    return articles
+@app.put("/articles/{article_id}")
+def update_article(article_id: int, title: str, content: str, publish_date: datetime, db: Session = Depends(get_db)):
+    db_article = articles.get_article(db=db, article_id=article_id)
+    if db_article is None:
+        raise HTTPException(status_code=404, detail="Article not found")
+    return articles.update_article(db=db, article=db_article, title=title, content=content, publish_date=publish_date)
 
-#GET ALL
-@app.get("/articles/", response_model=list[Article])
-async def get_articles():
-    return read_articles()
-
-#GET ONE
-@app.get("/articles/{article_id}", response_model=Article)
-async def get_article(article_id: int):
-    return read_article(article_id)
-
-#POST ONE
-@app.post("/articles/", response_model=Article)
-async def create_new_article(article: Article):
-    return create_article(article)
-
-#EDIT ONE
-@app.put("/articles/{article_id}", response_model=Article)
-async def update_existing_article(article_id: int, article: Article):
-    return update_article(article_id, article)
-
-#DELETE ONE
-@app.delete("/articles/{article_id}", response_model=Article)
-async def delete_existing_article(article_id: int):
-    return delete_article(article_id)
+@app.delete("/articles/{article_id}")
+def delete_article(article_id: int, db: Session = Depends(get_db)):
+    db_article = articles.get_article(db=db, article_id=article_id)
+    if db_article is None:
+        raise HTTPException(status_code=404, detail="Article not found")
+    articles.delete_article(db=db, article=db_article)
+    return {"message": "Article deleted successfully"}
