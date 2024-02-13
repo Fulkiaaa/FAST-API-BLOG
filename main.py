@@ -6,10 +6,10 @@ from datetime import datetime
 
 app = FastAPI()
 
-# Create the database tables
+# Créer les tables de la base de données
 Base.metadata.create_all(bind=engine)
 
-# Dependency for getting the database session
+# Dépendance pour obtenir la session de base de données
 def get_db():
     db = SessionLocal()
     try:
