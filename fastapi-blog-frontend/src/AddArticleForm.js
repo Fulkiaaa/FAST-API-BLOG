@@ -17,6 +17,7 @@ function AddArticleForm() {
       setTitle("");
       setContent("");
       alert("Article ajouté avec succès !");
+      window.location.reload();
     } catch (error) {
       console.error("Error adding article:", error);
       alert("Une erreur s'est produite lors de l'ajout de l'article.");
