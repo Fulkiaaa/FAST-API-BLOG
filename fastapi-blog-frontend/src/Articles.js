@@ -9,7 +9,7 @@ function Articles() {
     async function fetchArticles() {
       try {
         const response = await axios.get("http://localhost:8000/articles/");
-        setArticles(response.data);
+        setArticles(response.data.reverse());
         setLoading(false);
       } catch (error) {
         console.error("Error fetching articles:", error);
