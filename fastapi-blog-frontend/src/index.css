@@ -21,9 +21,6 @@ form {
 .btn-delete {
   background-color: red;
 }
-.btn-delete:hover {
-  background-color: rgba(210, 4, 4, 1);
-}
 
 input[type="text"],
 input[type="date"],

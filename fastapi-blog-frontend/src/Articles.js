@@ -4,9 +4,6 @@ import axios from "axios";
 function Articles() {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [editingArticle, setEditingArticle] = useState(null);
-  const [editTitle, setEditTitle] = useState("");
-  const [editContent, setEditContent] = useState("");
 
   useEffect(() => {
     async function fetchArticles() {
@@ -33,33 +30,13 @@ function Articles() {
     }
   };
 
-  const handleEditArticle = (article) => {
-    setEditingArticle(article);
-    setEditTitle(article.title);
-    setEditContent(article.content);
-    console.log("article", article);
-  };
-
-  const handleSubmitEdit = async (e) => {
-    e.preventDefault();
-    // console.log("e", e);
-    try {
-      await axios.put(`http://localhost:8000/articles/${editingArticle.id}`, {
-        title: editTitle,
-        content: editContent,
-      });
-      alert("Article mis à jour avec succès !");
-      setEditingArticle(null);
-      window.location.reload();
-    } catch (error) {
-      console.error("Error updating article:", error);
-      alert("Une erreur s'est produite lors de la mise à jour de l'article.");
-    }
-  };
+  if (loading) {
+    return <div>Loading articles...</div>;
+  }
 
   return (
     <div>
-      <h2>Liste des articles</h2>
+      <h2>Articles</h2>
       <ul>
         {articles.map((article) => (
           <div
@@ -77,11 +54,8 @@ function Articles() {
               <p>{article.content}</p>
             </div>
             <div>
-              <button onClick={() => handleEditArticle(article)}>
-                Modifier
-              </button>
               <button
-                className="btn-delete"
+                class="btn-delete"
                 onClick={() => handleDeleteArticle(article.id)}
               >
                 Supprimer
@@ -90,34 +64,6 @@ function Articles() {
           </div>
         ))}
       </ul>
-      {editingArticle && (
-        <div>
-          <h2>Modifier l'article</h2>
-          <form onSubmit={handleSubmitEdit}>
-            <div>
-              <label htmlFor="editTitle">Titre :</label>
-              <input
-                type="text"
-                id="editTitle"
-                value={editTitle}
-                onChange={(e) => setEditTitle(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="editContent">Contenu :</label>
-              <textarea
-                id="editContent"
-                value={editContent}
-                onChange={(e) => setEditContent(e.target.value)}
-                required
-              />
-            </div>
-            <button type="submit">Enregistrer les modifications</button>
-            <button onClick={() => setEditingArticle(null)}>Annuler</button>
-          </form>
-        </div>
-      )}
     </div>
   );
 }
