@@ -19,6 +19,17 @@ function Articles() {
     fetchArticles();
   }, []);
 
+  const handleDeleteArticle = async (articleId) => {
+    try {
+      await axios.delete(`http://localhost:8000/articles/${articleId}`);
+      alert("Article supprimé avec succès !");
+      window.location.reload();
+    } catch (error) {
+      console.error("Error deleting article:", error);
+      alert("Une erreur s'est produite lors de la suppression de l'article.");
+    }
+  };
+
   if (loading) {
     return <div>Loading articles...</div>;
   }
@@ -28,11 +39,29 @@ function Articles() {
       <h2>Articles</h2>
       <ul>
         {articles.map((article) => (
-          <ul key={article.id}>
-            <h3>{article.title}</h3>
-            <p>{article.content}</p>
-            <hr />
-          </ul>
+          <div
+            key={article.id}
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              borderBottom: "1px solid #ccc",
+              marginBottom: "10px",
+              paddingBottom: "10px",
+            }}
+          >
+            <div>
+              <h3>{article.title}</h3>
+              <p>{article.content}</p>
+            </div>
+            <div>
+              <button
+                class="btn-delete"
+                onClick={() => handleDeleteArticle(article.id)}
+              >
+                Supprimer
+              </button>
+            </div>
+          </div>
         ))}
       </ul>
     </div>

@@ -18,6 +18,10 @@ form {
   margin-bottom: 20px;
 }
 
+.btn-delete {
+  background-color: red;
+}
+
 input[type="text"],
 input[type="date"],
 textarea {
