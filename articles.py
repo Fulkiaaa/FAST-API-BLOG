@@ -42,3 +42,5 @@ def delete_article(db: Session, article_id: int):
         db.delete(db_article)
         db.commit()
     return db_article
+
+
